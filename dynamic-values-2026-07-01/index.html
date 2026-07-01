@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dynamic Values — Assignment SMS Message (Prototype)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+    body { font-family: "Lato", -apple-system, sans-serif; }
+    .font-inter { font-family: "Inter", -apple-system, sans-serif; }
+    #editor:empty:before { content: attr(data-placeholder); color: #9ca3af; }
+    .dv-chip { user-select: none; }
+</style>
+</head>
+<body class="bg-gray-200 min-h-screen py-10">
+
+    <div class="mx-auto w-[600px] bg-white rounded-md shadow-xl relative">
+        <!-- Header -->
+        <div class="flex items-center gap-3 px-6 pt-4 pb-[17px] border-b border-[#e8e8e8]">
+            <button type="button" class="text-black/60 hover:text-black/80" aria-label="Close (prototype only, non-functional)">
+                <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none"><path d="M1 1L15 15M15 1L1 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
+            </button>
+            <div class="text-[16px] font-bold text-[#021424]">Assignment</div>
+        </div>
+
+        <!-- Body -->
+        <div class="pt-9 pb-6 px-6 flex flex-col gap-6">
+
+            <!-- General section -->
+            <div class="border border-gray-200 rounded-md overflow-hidden">
+                <div class="h-[38px] flex items-center bg-[#FAFAFA] border-b border-gray-200 px-4 text-[14px] font-bold text-black/85">
+                    General
+                </div>
+                <div class="pt-8 pb-8 px-8 flex flex-col gap-4">
+
+                    <div class="flex items-start">
+                        <div class="w-[180px] shrink-0 text-right pr-2 pt-1.5 text-[14px] text-black/85">
+                            <span class="text-[#2196f3]">•</span> Assignment Name
+                        </div>
+                        <input
+                            type="text"
+                            value="Party Table 1"
+                            class="w-[317px] h-8 border border-[#d9d9d9] rounded px-3 text-[14px] text-black/75 focus:outline-none focus:border-[#4caf50]" />
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="w-[180px] shrink-0 text-right pr-2 pt-1.5 text-[14px] text-black/85">Section</div>
+                        <select class="w-[317px] h-8 border border-[#d9d9d9] rounded px-3 text-[14px] text-black/75 focus:outline-none focus:border-[#4caf50]">
+                            <option>Common</option>
+                        </select>
+                    </div>
+
+                    <label class="flex items-center gap-2 pl-[149px] cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 rounded-sm border-[#d9d9d9] accent-[#4caf50] focus:ring-0" />
+                        <span class="text-[14px] text-black/75">Require Customer</span>
+                    </label>
+                    <label class="flex items-center gap-2 pl-[149px] cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 rounded-sm border-[#d9d9d9] accent-[#4caf50] focus:ring-0" />
+                        <span class="text-[14px] text-black/75">Require Guest Count</span>
+                    </label>
+                    <label class="flex items-center gap-2 pl-[149px] cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 rounded-sm border-[#d9d9d9] accent-[#4caf50] focus:ring-0" />
+                        <span class="text-[14px] text-black/75">Require Delivery Address</span>
+                    </label>
+                    <label class="flex items-center gap-2 pl-[149px] cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 rounded-sm border-[#d9d9d9] accent-[#4caf50] focus:ring-0" />
+                        <span class="text-[14px] text-black/75">Highlight on Receipts</span>
+                    </label>
+                    <label class="flex items-center gap-2 pl-[149px] cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 rounded-sm border-[#d9d9d9] accent-[#4caf50] focus:ring-0" />
+                        <span class="text-[14px] text-black/75">Allow Multiple Sessions</span>
+                    </label>
+                    <label class="flex items-center gap-2 pl-[149px] cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 rounded-sm border-[#d9d9d9] accent-[#4caf50] focus:ring-0" />
+                        <span class="text-[14px] text-black/75">Allow Open Orders via Online Ordering</span>
+                    </label>
+                    <label class="flex items-center gap-2 pl-[149px] cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 rounded-sm border-[#d9d9d9] accent-[#4caf50] focus:ring-0" />
+                        <span class="text-[14px] text-black/75">Prompt Seating when Adding Items</span>
+                    </label>
+
+                    <!-- Send SMS on order ready -->
+                    <div class="flex flex-col gap-3">
+                        <label class="flex items-center gap-2 pl-[149px] cursor-pointer">
+                            <input id="smsCheckbox" type="checkbox" checked class="w-4 h-4 rounded-sm border-[#4caf50] accent-[#4caf50] focus:ring-0" />
+                            <span class="text-[14px] text-black/75">Send SMS Message Upon Marking Order Ready</span>
+                        </label>
+
+                        <div id="messageSection" class="pl-[149px] flex flex-col gap-4">
+                            <!-- Editor -->
+                            <div class="flex flex-col gap-1">
+                                <div
+                                    id="editor"
+                                    contenteditable="true"
+                                    spellcheck="false"
+                                    data-placeholder="Type your message…"
+                                    class="font-inter w-full min-h-[80px] bg-white border border-[#d9d9d9] rounded-[4px] p-3 text-[14px] leading-[1.6] text-[#111827] focus:outline-none focus:border-[#0d9488]"
+                                >Hello <span class="dv-chip inline-flex items-center gap-1 h-[22px] rounded-[2px] border border-[#e8e8e8] bg-[#f5f5f5] pl-2.5 pr-2 mx-0.5 text-[14px] text-black align-middle" contenteditable="false" data-dv-id="firstName">First Name<button type="button" class="dv-remove text-black/40 hover:text-black/70" data-action="remove" aria-label="Remove First Name"><svg viewBox="0 0 8 8" class="w-[7px] h-2" fill="none"><path d="M1 1L7 7M7 1L1 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" /></svg></button></span>. Your order from <span class="dv-chip inline-flex items-center gap-1 h-[22px] rounded-[2px] border border-[#e8e8e8] bg-[#f5f5f5] pl-2.5 pr-2 mx-0.5 text-[14px] text-black align-middle" contenteditable="false" data-dv-id="businessName">Business Name<button type="button" class="dv-remove text-black/40 hover:text-black/70" data-action="remove" aria-label="Remove Business Name"><svg viewBox="0 0 8 8" class="w-[7px] h-2" fill="none"><path d="M1 1L7 7M7 1L1 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" /></svg></button></span> is ready for pickup at <span class="dv-chip inline-flex items-center gap-1 h-[22px] rounded-[2px] border border-[#e8e8e8] bg-[#f5f5f5] pl-2.5 pr-2 mx-0.5 text-[14px] text-black align-middle" contenteditable="false" data-dv-id="pickupTime">Pickup Time<button type="button" class="dv-remove text-black/40 hover:text-black/70" data-action="remove" aria-label="Remove Pickup Time"><svg viewBox="0 0 8 8" class="w-[7px] h-2" fill="none"><path d="M1 1L7 7M7 1L1 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" /></svg></button></span>. Thank you!</div>
+                                <div id="charCounter" class="text-[12px] text-[#66717d]">— / 160 characters</div>
+                            </div>
+
+                            <!-- Available tags -->
+                            <div id="availableTagsRow" class="flex flex-wrap gap-[6px] items-center"></div>
+
+                            <!-- Preview -->
+                            <div class="flex flex-col gap-2">
+                                <div class="font-inter font-medium text-[11px] uppercase text-[#66717d]">Preview Example</div>
+                                <div class="flex flex-col gap-1">
+                                    <div id="previewCard" class="font-inter bg-[#f9fafb] border border-[#e8e8e8] rounded-[6px] p-3 text-[13px] leading-[1.5] text-[#6b7280]"></div>
+                                    <div class="text-[12px] text-[#66717d]">
+                                        Actual values are substituted per order. If customer data is unavailable, that value won't appear in the message.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Filter section -->
+            <div class="border border-gray-200 rounded-md overflow-hidden">
+                <div class="h-[38px] flex items-center bg-[#FAFAFA] border-b border-gray-200 px-4 text-[14px] font-bold text-black/85">
+                    Quick Filter as a Tab in POS
+                </div>
+                <div class="py-6 px-8">
+                    <label class="flex items-start gap-2 cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 mt-1 rounded-sm border-[#d9d9d9] accent-[#4caf50] focus:ring-0" />
+                        <span class="flex flex-col">
+                            <span class="text-[14px] text-black/75">Show assignment as a Tab in Order List</span>
+                            <span class="text-[14px] text-[#acb6bf]">Quickly filter Orders by this assignment in POS Order List</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-1 text-[14px] text-black/75">
+                <span class="text-[#2196f3] text-[18px] leading-none">•</span> Required
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="border-t border-[#e8e8e8] px-6 py-4 flex justify-end gap-2.5">
+            <button type="button" class="h-8 min-w-[76px] px-4 rounded border border-[#d9d9d9] bg-white text-[14px] text-black/75 hover:bg-gray-50">
+                Cancel
+            </button>
+            <button type="button" class="h-8 min-w-[76px] px-4 rounded border border-[#4caf50] bg-[#4caf50] text-[14px] text-white hover:bg-[#43a047]">
+                Save
+            </button>
+        </div>
+    </div>
+
+<script>
+    // Illustrative prototype numbers only — in production, reservedLength would be
+    // derived from the longest observed value per field across the merchant's customer data
+    // (per the design's annotation), so a message that fit at authoring time can't silently
+    // overflow once real per-order values are substituted in.
+    const DYNAMIC_VALUES = [
+        { id: "firstName", label: "First Name", mockValue: "John", reservedLength: 12 },
+        { id: "lastName", label: "Last Name", mockValue: "Smith", reservedLength: 14 },
+        { id: "businessName", label: "Business Name", mockValue: "Pho Bay Vietnamese", reservedLength: 20 },
+        { id: "pickupTime", label: "Pickup Time", mockValue: "2:45 PM", reservedLength: 8 },
+        { id: "locationAddress", label: "Location Address", mockValue: "123 Main St", reservedLength: 40 },
+    ]
+    const DYNAMIC_VALUES_BY_ID = Object.fromEntries(DYNAMIC_VALUES.map((d) => [d.id, d]))
+
+    // Same GSM-7 "extended character" rule as src/components/screens/assignments/smsLength.ts,
+    // reimplemented here since this prototype is a standalone file with no app imports.
+    const GSM_EXTENDED_CHARS = new Set(["\f", "^", "{", "}", "\\", "[", "~", "]", "|", "€"])
+    const SMS_MAX_LENGTH = 160
+    function getSmsLength(text) {
+        if (!text) return 0
+        let length = 0
+        for (const ch of text) length += GSM_EXTENDED_CHARS.has(ch) ? 2 : 1
+        return length
+    }
+
+    const editor = document.getElementById("editor")
+    const availableTagsRow = document.getElementById("availableTagsRow")
+    const previewCard = document.getElementById("previewCard")
+    const charCounter = document.getElementById("charCounter")
+
+    let lastRange = null
+
+    function collapseToEnd() {
+        const range = document.createRange()
+        range.selectNodeContents(editor)
+        range.collapse(false)
+        return range
+    }
+
+    function trackCaret() {
+        const sel = window.getSelection()
+        if (sel && sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
+            lastRange = sel.getRangeAt(0).cloneRange()
+        }
+    }
+
+    function buildChip(def) {
+        const chip = document.createElement("span")
+        chip.className =
+            "dv-chip inline-flex items-center gap-1 h-[22px] rounded-[2px] border border-[#e8e8e8] bg-[#f5f5f5] pl-2.5 pr-2 mx-0.5 text-[14px] text-black align-middle"
+        chip.contentEditable = "false"
+        chip.dataset.dvId = def.id
+
+        const label = document.createElement("span")
+        label.textContent = def.label
+        chip.appendChild(label)
+
+        const removeBtn = document.createElement("button")
+        removeBtn.type = "button"
+        removeBtn.className = "dv-remove text-black/40 hover:text-black/70"
+        removeBtn.dataset.action = "remove"
+        removeBtn.setAttribute("aria-label", "Remove " + def.label)
+        removeBtn.innerHTML =
+            '<svg viewBox="0 0 8 8" class="w-[7px] h-2" fill="none"><path d="M1 1L7 7M7 1L1 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" /></svg>'
+        chip.appendChild(removeBtn)
+
+        return chip
+    }
+
+    function insertTag(def) {
+        // Insert exactly where the caret was (or at the end, as a fallback) so the chip
+        // lands "in front of" the cursor rather than always at the end of the message.
+        const insertionRange = lastRange ? lastRange.cloneRange() : collapseToEnd()
+        const chip = buildChip(def)
+        insertionRange.deleteContents()
+        insertionRange.insertNode(chip)
+
+        // A trailing space gives the caret (and any following text) somewhere to sit without
+        // touching the chip, but the caret itself must land directly behind the chip — not
+        // past the space — per the requested behavior.
+        const spacer = document.createTextNode(" ")
+        chip.after(spacer)
+
+        const caretRange = document.createRange()
+        caretRange.setStartAfter(chip)
+        caretRange.collapse(true)
+
+        // Focus must happen before the range is applied — focusing a contenteditable that
+        // isn't already the active element restores its own last-known caret position,
+        // which would silently clobber the range we just computed if set beforehand.
+        editor.focus()
+        const sel = window.getSelection()
+        sel.removeAllRanges()
+        sel.addRange(caretRange)
+        lastRange = caretRange.cloneRange()
+
+        recompute()
+    }
+
+    function removeChip(chip) {
+        chip.remove()
+        editor.focus()
+        recompute()
+    }
+
+    function readTokens() {
+        const tokens = []
+        editor.childNodes.forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                tokens.push({ type: "text", value: node.textContent })
+            } else if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains("dv-chip")) {
+                tokens.push({ type: "tag", id: node.dataset.dvId })
+            }
+            // anything else (e.g. a stray <div>/<br> from paste) is ignored rather than parsed
+        })
+        return tokens
+    }
+
+    function renderAvailableTags(usedIds) {
+        availableTagsRow.innerHTML = ""
+        DYNAMIC_VALUES.filter((d) => !usedIds.has(d.id)).forEach((def) => {
+            const btn = document.createElement("button")
+            btn.type = "button"
+            btn.className =
+                "dv-add inline-flex items-center gap-1 h-[22px] rounded-[2px] border border-[#e8e8e8] bg-[#f5f5f5] pl-2 pr-2.5 text-[14px] text-black hover:bg-[#eeeeee]"
+            btn.dataset.dvId = def.id
+            btn.innerHTML =
+                '<svg viewBox="0 0 8 8" class="w-2 h-2" fill="none"><path d="M4 0V8M0 4H8" stroke="black" stroke-width="1" /></svg><span>' +
+                def.label +
+                "</span>"
+            btn.addEventListener("click", () => insertTag(def))
+            availableTagsRow.appendChild(btn)
+        })
+    }
+
+    function recompute() {
+        const tokens = readTokens()
+
+        let countable = ""
+        let preview = ""
+        const usedIds = new Set()
+
+        tokens.forEach((t) => {
+            if (t.type === "text") {
+                countable += t.value
+                preview += t.value
+            } else {
+                const def = DYNAMIC_VALUES_BY_ID[t.id]
+                if (!def) return
+                usedIds.add(t.id)
+                countable += "X".repeat(def.reservedLength)
+                preview += def.mockValue
+            }
+        })
+
+        const length = getSmsLength(countable)
+        const isOverLimit = length > SMS_MAX_LENGTH
+        charCounter.textContent = `${length} / ${SMS_MAX_LENGTH} characters`
+        charCounter.classList.toggle("text-[#ff4d4f]", isOverLimit)
+        charCounter.classList.toggle("text-[#66717d]", !isOverLimit)
+
+        previewCard.textContent = preview.trim() || "—"
+
+        renderAvailableTags(usedIds)
+    }
+
+    editor.addEventListener("input", recompute)
+    editor.addEventListener("keyup", trackCaret)
+    editor.addEventListener("mouseup", trackCaret)
+    editor.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") e.preventDefault()
+    })
+    editor.addEventListener("paste", (e) => {
+        e.preventDefault()
+        const text = (e.clipboardData || window.clipboardData).getData("text/plain")
+        document.execCommand("insertText", false, text)
+    })
+    editor.addEventListener("click", (e) => {
+        const removeBtn = e.target.closest(".dv-remove")
+        if (!removeBtn) return
+        const chip = removeBtn.closest(".dv-chip")
+        if (chip) removeChip(chip)
+    })
+
+    const smsCheckbox = document.getElementById("smsCheckbox")
+    const messageSection = document.getElementById("messageSection")
+    function updateSmsVisibility() {
+        messageSection.classList.toggle("hidden", !smsCheckbox.checked)
+    }
+    smsCheckbox.addEventListener("change", updateSmsVisibility)
+    updateSmsVisibility()
+
+    recompute()
+</script>
+</body>
+</html>
