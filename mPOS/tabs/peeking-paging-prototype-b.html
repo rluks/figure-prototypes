@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Paginated Tabs — B (peek)</title>
+<style>
+  :root {
+    --contentDefault: #010d0a;
+    --contentBrand: #068466;
+    --contentDisabled: #b3b6bb;
+    --borderSubtleLight: #e3e4e6;
+    --bgDefault: #ffffff;
+    --font: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+    --tab-h: 44px;
+    --peek: 40px;              /* sliver reserved so the next tab peeks in */
+    --page-pad: 12px;
+    --tab-gap: 12px;
+    --indicator-h: 2px;
+    --snap-ms: 260ms;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--contentDefault);
+    background: #2b2b2b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  /* The prototype: the paginated tabs bar with a peek */
+  .frame {
+    width: 380px;
+    max-width: 100%;
+  }
+
+  .tabbar {
+    display: flex;
+    align-items: center;
+    background: var(--bgDefault);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    border-bottom: 1px solid var(--borderSubtleLight);
+  }
+  .chevron {
+    flex: 0 0 auto;
+    width: 36px; height: var(--tab-h);
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; cursor: pointer;
+    font-size: 20px; line-height: 1;
+    color: var(--contentBrand);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chevron:disabled { color: var(--contentDisabled); cursor: default; }
+
+  .viewport {
+    flex: 1 1 auto;
+    position: relative;
+    height: var(--tab-h);
+    overflow: hidden;
+  }
+  .track {
+    position: absolute;
+    top: 0; left: 0;
+    height: var(--tab-h);
+    display: flex;
+    align-items: stretch;
+    transition: transform var(--snap-ms) cubic-bezier(0.22, 0.61, 0.36, 1);
+    will-change: transform;
+  }
+  .tab {
+    flex: 0 0 auto;
+    display: flex; align-items: center;
+    height: var(--tab-h);
+    padding: 0 16px;
+    font-size: 15px; font-weight: 600;
+    color: var(--contentDefault);
+    background: none; border: none; cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab.active { color: var(--contentBrand); }
+  .indicator {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: var(--indicator-h);
+    background: var(--contentBrand);
+    border-radius: 2px;
+    transition: transform var(--snap-ms) cubic-bezier(0.22,0.61,0.36,1),
+                width var(--snap-ms) cubic-bezier(0.22,0.61,0.36,1),
+                opacity 120ms ease;
+  }
+
+  /* peek edge fade, so the cut tab reads as "more" not "clipped by accident" */
+  .viewport.peek::after {
+    content: "";
+    position: absolute; top: 0; right: 0; bottom: 0;
+    width: 28px;
+    background: linear-gradient(90deg, rgba(255,255,255,0), var(--bgDefault));
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="tabbar">
+      <button class="chevron prev" aria-label="Previous tabs">‹</button>
+      <div class="viewport peek"><div class="track"></div><div class="indicator"></div></div>
+      <button class="chevron next" aria-label="More tabs">›</button>
+    </div>
+  </div>
+
+<script>
+(function () {
+  var LABELS = ["Account", "Dashboard", "Notifications", "Payments", "Advanced settings", "Devices"];
+
+  var bar = document.querySelector('.tabbar');
+  var viewport = bar.querySelector('.viewport');
+  var track = bar.querySelector('.track');
+  var indicator = bar.querySelector('.indicator');
+  var prev = bar.querySelector('.prev');
+  var next = bar.querySelector('.next');
+
+  var pagePad = 12;
+  var tabGap = 12;
+  var state = { pageIndex: 0, selected: 0, pages: [], offsets: [], tabEls: [], vw: 0 };
+
+  function makeTab(i) {
+    var el = document.createElement('button');
+    el.className = 'tab' + (i === state.selected ? ' active' : '');
+    el.textContent = LABELS[i];
+    el.addEventListener('click', function () { select(i); });
+    return el;
+  }
+
+  // First pass: lay all tabs out continuously so we can measure their widths.
+  function render() {
+    track.innerHTML = '';
+    state.tabEls = LABELS.map(function (_, i) {
+      var el = makeTab(i);
+      el.style.marginLeft = (i === 0 ? pagePad : tabGap) + 'px';
+      track.appendChild(el);
+      return el;
+    });
+  }
+
+  // Greedy packing into pages, mirroring buildTabsPages(): a tab joins the current page if it
+  // still fits the budget; otherwise it starts a new page. The budget is shrunk by the peek so
+  // the first tab of the next page is left partially visible (the peek).
+  function paginate() {
+    var vw = viewport.clientWidth;
+    state.vw = vw;
+    var peek = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--peek'));
+    var budget = vw - peek;
+    var pages = [];
+    var page = [];
+    var used = pagePad;
+    state.tabEls.forEach(function (el, i) {
+      var gap = (page.length === 0) ? 0 : tabGap;
+      var w = el.getBoundingClientRect().width;
+      // The last tab has nothing after it to peek, so it only needs to fit the
+      // full viewport — not the peek-reduced budget. This keeps trailing tabs
+      // that genuinely fit on one screen from spilling onto a lonely page.
+      var isLast = (i === state.tabEls.length - 1);
+      var limit = isLast ? vw : budget;
+      if (page.length > 0 && used + gap + w > limit) {
+        pages.push(page);
+        page = [i];
+        used = pagePad + w;
+      } else {
+        page.push(i);
+        used += gap + w;
+      }
+    });
+    if (page.length) pages.push(page);
+    state.pages = pages;
+
+    layout();
+    clampPage();
+  }
+
+  // Continuous track; snap offsets are page-start positions, and because the budget was shrunk,
+  // the next tab spills into the reserved sliver → the peek.
+  function layout() {
+    track.innerHTML = '';
+    state.tabEls.forEach(function (el, i) {
+      el.style.marginLeft = (i === 0 ? pagePad : tabGap) + 'px';
+      track.appendChild(el);
+    });
+    state.offsets = state.pages.map(function (p) {
+      return state.tabEls[p[0]].offsetLeft - pagePad;
+    });
+  }
+
+  function pageOfTab(i) {
+    for (var p = 0; p < state.pages.length; p++) {
+      if (state.pages[p].indexOf(i) !== -1) return p;
+    }
+    return 0;
+  }
+
+  function clampPage() {
+    state.pageIndex = Math.max(0, Math.min(state.pageIndex, state.pages.length - 1));
+  }
+
+  function applyPage() {
+    clampPage();
+    track.style.transform = 'translateX(' + (-state.offsets[state.pageIndex]) + 'px)';
+    prev.disabled = state.pageIndex === 0;
+    next.disabled = state.pageIndex === state.pages.length - 1;
+    updateIndicator();
+  }
+
+  // Indicator lives inside the track, so viewport overflow:hidden naturally clips/hides it
+  // when the active tab is scrolled off the current page — same as the RN component.
+  function updateIndicator() {
+    var el = state.tabEls[state.selected];
+    var onPage = pageOfTab(state.selected) === state.pageIndex;
+    indicator.style.opacity = onPage ? '1' : '0';
+    indicator.style.width = el.getBoundingClientRect().width + 'px';
+    indicator.style.transform = 'translateX(' + el.offsetLeft + 'px)';
+  }
+
+  // Selection is independent of pagination: tapping a tab only changes which tab
+  // is active, never which page is shown. The indicator hides itself when the
+  // selected tab lives on another page (see updateIndicator). Paging is driven
+  // solely by the chevrons.
+  function select(i) {
+    state.selected = i;
+    state.tabEls.forEach(function (el, idx) { el.classList.toggle('active', idx === i); });
+    updateIndicator();
+  }
+
+  prev.addEventListener('click', function () { state.pageIndex--; applyPage(); });
+  next.addEventListener('click', function () { state.pageIndex++; applyPage(); });
+
+  function init() {
+    render();
+    requestAnimationFrame(function () {
+      paginate();
+      applyPage();
+    });
+  }
+
+  init();
+  window.addEventListener('resize', function () { paginate(); applyPage(); });
+})();
+</script>
+</body>
+</html>
