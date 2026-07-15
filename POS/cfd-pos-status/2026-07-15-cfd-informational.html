@@ -1,0 +1,2463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CFD → POS — informational states</title>
+  <style>
+    /* =========================================================================
+     SELF-CONTAINED tokens — inlined from design/tokens.css (the canonical
+     source; when it changes, re-stamp this block). Inlined so the file renders
+     correctly on file:// too, where Chromium CORS-blocks a linked stylesheet.
+     Fonts: @font-face loads Lato when served; on file:// it's blocked and falls
+     back to -apple-system (San Francisco) via the --font stack. Layout stays
+     pixel-correct either way because every token below is defined here.
+     ========================================================================= */
+    @font-face {
+      font-family: "Lato";
+      font-weight: 300;
+      font-style: normal;
+      src: url("../assets/fonts/Lato/Lato-Light.ttf") format("truetype");
+    }
+
+    @font-face {
+      font-family: "Lato";
+      font-weight: 400;
+      font-style: normal;
+      src: url("../assets/fonts/Lato/Lato-Regular.ttf") format("truetype");
+    }
+
+    @font-face {
+      font-family: "Lato";
+      font-weight: 400;
+      font-style: italic;
+      src: url("../assets/fonts/Lato/Lato-Italic.ttf") format("truetype");
+    }
+
+    @font-face {
+      font-family: "Lato";
+      font-weight: 500;
+      font-style: normal;
+      src: url("../assets/fonts/Lato/Lato-Medium.ttf") format("truetype");
+    }
+
+    @font-face {
+      font-family: "Lato";
+      font-weight: 600;
+      font-style: normal;
+      src: url("../assets/fonts/Lato/Lato-Semibold.ttf") format("truetype");
+    }
+
+    @font-face {
+      font-family: "Lato";
+      font-weight: 700;
+      font-style: normal;
+      src: url("../assets/fonts/Lato/Lato-Bold.ttf") format("truetype");
+    }
+
+    @font-face {
+      font-family: "Lato";
+      font-weight: 900;
+      font-style: normal;
+      src: url("../assets/fonts/Lato/Lato-Heavy.ttf") format("truetype");
+    }
+
+    :root {
+      --font: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --weight-light: 300;
+      --weight-regular: 400;
+      --weight-medium: 500;
+      --weight-semibold: 600;
+      --weight-bold: 700;
+      --weight-heavy: 900;
+      --text-xxs: 10px;
+      --text-xs: 12px;
+      --text-s: 14px;
+      --text-ms: 16px;
+      --text-m: 17px;
+      --text-mb: 21px;
+      --text-big: 24px;
+      --text-xl: 28px;
+      --text-xxl: 32px;
+      --text-xxxl: 64px;
+      --page-padding-h: 22px;
+      --page-padding-v: 22px;
+      --page-padding-bottom: 22px;
+      --green: #4CAF50;
+      --green-lighter: #96da99;
+      --green-lighter-2: #E0F0E3;
+      --green-lighter-3: #DBEFDC;
+      --green-dark: #5C9D52;
+      --green-dark-2: #3d7247;
+      --action: var(--green);
+      --red: #EF5350;
+      --red-darker: #DF2935;
+      --red-light: #EF535033;
+      --blue: #2196F3;
+      --blue-light-2: #68B4F4;
+      --blue-lighter-2: #1E80F0;
+      --blue-darker: #1d87da;
+      --tips: #2895f0;
+      --orange: #FF9800;
+      --orange-2: #F5BB40;
+      --light-orange: #FFDA99;
+      --dark-orange: #B36B00;
+      --yellow-butter: #FED033;
+      --loyalty: #FF809A;
+      --loyalty-darker: #CC4D67;
+      --grey-05: #F7F8FA;
+      --grey-1: #F0F2F5;
+      --grey-2: #E2E6EB;
+      --grey-3: #D1D8DE;
+      --grey-4: #BEC5CF;
+      --grey-5: #ACB6BF;
+      --grey-6: #9BA5B0;
+      --grey-7: #8A95A1;
+      --grey-8: #78838F;
+      --grey-9: #66717D;
+      --grey-10: #56606B;
+      --grey-11: #454F59;
+      --grey-12: #363F47;
+      --grey-13: #252C33;
+      --grey-14: #14181C;
+      --black: #000000;
+      --white: #FFFFFF;
+      --almost-white: #FEFEFE;
+      --bg-screen: #F6F6F6;
+      --bg-default: var(--white);
+      --bg-menu: #E2E6EA;
+      --text-default: var(--grey-14);
+      --text-subtle: var(--grey-9);
+      --text-faded: #081D3340;
+      --border: #081D3340;
+      --border-darker: #9BA5B0;
+      --default-button-bg: #e7ebf0;
+      --radius-s: 4px;
+      --radius-m: 8px;
+      --radius-l: 16px;
+      --radius-round: 9999px;
+      --border-width-hair: 0.5px;
+      --border-width: 1px;
+    }
+  </style>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+    }
+
+    body {
+      font-family: var(--font);
+      color: var(--text-default);
+      background: #eceef1;
+      padding: 40px 32px 90px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---------------- page scaffolding ---------------- */
+    .page {
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    .page-head {
+      margin-bottom: 26px;
+    }
+
+    .eyebrow {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--grey-8);
+      margin: 0 0 8px;
+    }
+
+    h1 {
+      font-size: var(--text-xxl);
+      font-weight: var(--weight-heavy);
+      margin: 0 0 10px;
+      letter-spacing: -.01em;
+    }
+
+    .lede {
+      font-size: var(--text-mb);
+      line-height: 1.5;
+      color: var(--grey-11);
+      margin: 0;
+      max-width: 72ch;
+    }
+
+    .lede b {
+      color: var(--text-default);
+    }
+
+    h2 {
+      font-size: var(--text-s);
+      font-weight: var(--weight-bold);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--grey-9);
+      margin: 46px 0 14px;
+    }
+
+    .h2sub {
+      font-size: var(--text-ms);
+      color: var(--grey-10);
+      margin: -6px 0 16px;
+      max-width: 74ch;
+      line-height: 1.5;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: .9em;
+      background: var(--grey-1);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--grey-12);
+    }
+
+    /* ---------------- controls ---------------- */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px 28px;
+      background: var(--white);
+      border: 1px solid var(--grey-2);
+      border-radius: var(--radius-l);
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .control-group>span {
+      font-size: var(--text-xxs);
+      font-weight: var(--weight-bold);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--grey-8);
+    }
+
+    .seg {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .seg button {
+      font-family: var(--font);
+      font-size: var(--text-s);
+      font-weight: var(--weight-semibold);
+      color: var(--grey-11);
+      background: var(--grey-1);
+      border: 1px solid transparent;
+      padding: 7px 13px;
+      border-radius: var(--radius-round);
+      cursor: pointer;
+      transition: background .12s, color .12s, border-color .12s;
+    }
+
+    .seg button:hover {
+      background: var(--grey-2);
+    }
+
+    .seg button[aria-pressed="true"] {
+      background: var(--grey-13);
+      color: var(--white);
+      border-color: var(--grey-13);
+    }
+
+    .seg.treatments button.rec[aria-pressed="true"] {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .seg.states button[aria-pressed="true"] {
+      background: var(--state-color, var(--grey-13));
+      border-color: var(--state-color, var(--grey-13));
+      color: #fff;
+    }
+
+    .seg .tierlabel {
+      font-size: var(--text-xxs);
+      font-weight: var(--weight-bold);
+      color: var(--grey-6);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin: 0 2px 0 6px;
+      align-self: center;
+    }
+
+    .seg .tierlabel:first-child {
+      margin-left: 0;
+    }
+
+    /* explanation caption under controls */
+    .why {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: var(--white);
+      border: 1px solid var(--grey-2);
+      border-radius: var(--radius-m);
+      padding: 12px 16px;
+      margin-bottom: 22px;
+      font-size: var(--text-s);
+      color: var(--grey-10);
+    }
+
+    .why .badge {
+      font-size: var(--text-xxs);
+      font-weight: var(--weight-heavy);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: 3px 9px;
+      border-radius: var(--radius-round);
+      color: #fff;
+      background: var(--state-color);
+    }
+
+    .why b {
+      color: var(--text-default);
+    }
+
+    .why .arrow {
+      color: var(--grey-5);
+      font-weight: 700;
+    }
+
+    /* ---------------- the POS device (real Figure Register layout) ---------------- */
+    .stage {
+      display: flex;
+      justify-content: center;
+    }
+
+    .device {
+      width: 1024px;
+      height: 768px;
+      position: relative;
+      background: var(--bg-screen);
+      border-radius: 20px;
+      box-shadow: 0 24px 60px -20px rgba(16, 24, 40, .35), 0 0 0 10px #11151a, 0 0 0 12px #2a3038;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      --state-color: var(--grey-9);
+      --state-tint: #EEF1F4;
+      --state-ink: #454F59;
+      --conn-color: var(--green);
+    }
+
+    .device-scaler {
+      transform-origin: top center;
+    }
+
+    .ios-bar {
+      height: 22px;
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      font-size: 12px;
+      font-weight: var(--weight-bold);
+      color: var(--grey-13);
+      background: var(--white);
+      z-index: 7;
+      position: relative;
+    }
+
+    .ios-bar .icons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      color: var(--grey-12);
+    }
+
+    .app {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+      position: relative;
+    }
+
+    /* ===================== LEFT: order panel (dark) ===================== */
+    .order {
+      width: 360px;
+      flex: none;
+      background: var(--grey-13);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .ord-top {
+      flex: none;
+      padding: 8px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .ord-top .burger {
+      font-size: 18px;
+      color: var(--grey-6);
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .ord-top .brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ord-top .brand .fig {
+      font-size: var(--text-mb);
+      font-weight: var(--weight-heavy);
+    }
+
+    .ord-top .brand .swap {
+      color: var(--grey-6);
+      font-size: 13px;
+    }
+
+    .ord-top .rest {
+      margin-left: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+    }
+
+    .ord-top .rest .who {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ord-top .rest .name {
+      font-size: var(--text-s);
+      font-weight: var(--weight-bold);
+      line-height: 1.25;
+      max-width: 165px;
+      text-align: right;
+    }
+
+    .ord-top .rest .live {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      flex: none;
+    }
+
+    .status-bar {
+      flex: none;
+      height: 28px;
+      background: var(--green);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      font-size: var(--text-s);
+      font-weight: var(--weight-bold);
+    }
+
+    .status-sub {
+      flex: none;
+      height: 26px;
+      background: #dfe8db;
+      color: var(--grey-11);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+    }
+
+    .status-sub .spacer {
+      flex: 1;
+    }
+
+    .status-sub .dots {
+      color: var(--grey-8);
+      font-weight: var(--weight-bold);
+    }
+
+    .fields {
+      flex: none;
+      display: flex;
+      padding: 12px 16px 10px;
+      gap: 10px;
+      border-bottom: 1px solid #333b42;
+    }
+
+    .fields .f {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .fields .f .val {
+      font-size: var(--text-ms);
+      font-weight: var(--weight-semibold);
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: 20px;
+    }
+
+    .fields .f .val.empty {
+      color: var(--grey-7);
+    }
+
+    .fields .f .lbl {
+      font-size: var(--text-xs);
+      color: var(--grey-7);
+      font-weight: var(--weight-semibold);
+      margin-top: 3px;
+    }
+
+    .cust-head {
+      display: flex;
+      padding: 12px 16px 4px;
+    }
+
+    .cust-head span {
+      flex: 1;
+      font-size: var(--text-xs);
+      color: var(--grey-7);
+      font-weight: var(--weight-bold);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .cust-head span:last-child {
+      flex: 0 0 auto;
+    }
+
+    .cust-row {
+      display: flex;
+      align-items: center;
+      padding: 4px 16px 8px;
+    }
+
+    .cust-row .cn {
+      font-size: var(--text-mb);
+      font-weight: var(--weight-semibold);
+    }
+
+    .cust-row .cv {
+      margin-left: auto;
+      font-size: var(--text-mb);
+      font-weight: var(--weight-semibold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ord-mid {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      padding: 0 14px;
+    }
+
+    .ord-foot {
+      flex: none;
+    }
+
+    .foot-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+    }
+
+    .foot-row .note {
+      font-size: var(--text-ms);
+      color: var(--grey-6);
+      font-weight: var(--weight-semibold);
+    }
+
+    .foot-row .preauth {
+      margin-left: auto;
+      font-size: var(--text-s);
+      font-weight: var(--weight-bold);
+      color: var(--grey-3);
+      border: 1px solid #3c444c;
+      border-radius: var(--radius-s);
+      padding: 8px 14px;
+      letter-spacing: .02em;
+    }
+
+    .pt-row {
+      display: flex;
+      border-top: 1px solid #333b42;
+    }
+
+    .pt-row .pt {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      font-size: var(--text-ms);
+      color: var(--grey-6);
+      font-weight: var(--weight-semibold);
+    }
+
+    .pt-row .pt+.pt {
+      border-left: 1px solid #333b42;
+    }
+
+    .pt-row .pt .v {
+      color: var(--grey-5);
+    }
+
+    .bottom-btns {
+      display: flex;
+      border-top: 1px solid #333b42;
+    }
+
+    .bottom-btns .bb {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 0 14px;
+      color: var(--grey-4);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .bottom-btns .bb+.bb {
+      border-left: 1px solid #333b42;
+    }
+
+    .bottom-btns .bb .ic {
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    /* ===================== RIGHT: catalog (light) ===================== */
+    .cat {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--white);
+    }
+
+    .cat-top {
+      flex: none;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--grey-2);
+    }
+
+    .cat-top .crumb {
+      font-size: var(--text-mb);
+      font-weight: var(--weight-semibold);
+      color: var(--grey-8);
+    }
+
+    .cat-top .rgt {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cat-top .ico {
+      color: var(--grey-8);
+      display: grid;
+      place-items: center;
+    }
+
+    .cat-top .ico svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .viewseg {
+      display: flex;
+      border: 1px solid var(--grey-3);
+      border-radius: var(--radius-s);
+      overflow: hidden;
+    }
+
+    .viewseg .vs {
+      width: 34px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      color: var(--grey-7);
+      border-right: 1px solid var(--grey-2);
+    }
+
+    .viewseg .vs:last-child {
+      border-right: none;
+    }
+
+    .viewseg .vs.on {
+      background: var(--grey-13);
+      color: #fff;
+    }
+
+    .viewseg .vs svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .lo-toggle {
+      display: flex;
+      border: 1px solid var(--grey-3);
+      border-radius: var(--radius-s);
+      overflow: hidden;
+      font-size: var(--text-s);
+      font-weight: var(--weight-semibold);
+    }
+
+    .lo-toggle .lo {
+      padding: 6px 12px;
+      color: var(--grey-9);
+      border-right: 1px solid var(--grey-2);
+    }
+
+    .lo-toggle .lo:last-child {
+      border-right: none;
+    }
+
+    .lo-toggle .lo.on {
+      background: var(--grey-1);
+      color: var(--grey-12);
+      font-weight: var(--weight-bold);
+    }
+
+    .tabs {
+      flex: none;
+      display: flex;
+      border-bottom: 1px solid var(--grey-2);
+    }
+
+    .tabs .tb {
+      flex: 1;
+      text-align: center;
+      padding: 11px 0;
+      font-size: var(--text-ms);
+      font-weight: var(--weight-bold);
+      color: var(--grey-7);
+      border-right: 1px solid var(--grey-2);
+      position: relative;
+    }
+
+    .tabs .tb:last-child {
+      border-right: none;
+    }
+
+    .tabs .tb.on {
+      color: var(--grey-13);
+    }
+
+    .tabs .tb.on::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: var(--grey-13);
+    }
+
+    .grid {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: 96px;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .tile {
+      border-radius: 6px;
+      padding: 10px;
+      position: relative;
+      color: #fff;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, .14);
+    }
+
+    .tile.green {
+      background: #5a9b57;
+    }
+
+    .tile.pink {
+      background: #e07f9a;
+    }
+
+    .tile .tname {
+      font-size: var(--text-ms);
+      font-weight: var(--weight-bold);
+      line-height: 1.2;
+    }
+
+    .tile .tbot {
+      margin-top: auto;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .tile .tbot .ti {
+      color: rgba(255, 255, 255, .92);
+    }
+
+    .tile .tbot .ti svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .tile .tbot .tp {
+      font-size: var(--text-s);
+      font-weight: var(--weight-bold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tile .badge {
+      position: absolute;
+      left: 30px;
+      top: 40px;
+      background: #e5484d;
+      color: #fff;
+      font-size: 10px;
+      font-weight: var(--weight-heavy);
+      min-width: 17px;
+      height: 17px;
+      padding: 0 4px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, .12);
+    }
+
+    .tile .badge.count {
+      background: #e5484d;
+    }
+
+    .action-bar {
+      flex: none;
+      display: flex;
+      align-items: stretch;
+      gap: 10px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--grey-2);
+      background: var(--white);
+    }
+
+    .action-bar .ab {
+      flex: 0 0 auto;
+      min-width: 96px;
+      text-align: center;
+      padding: 12px 14px;
+      border: 1px solid var(--grey-3);
+      border-radius: var(--radius-s);
+      font-size: var(--text-ms);
+      font-weight: var(--weight-bold);
+      color: var(--grey-11);
+      background: var(--white);
+      position: relative;
+    }
+
+    .action-bar .ab.on {
+      color: var(--grey-13);
+    }
+
+    .action-bar .charge {
+      flex: 1;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-m);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: var(--text-mb);
+      font-weight: var(--weight-bold);
+      box-shadow: 0 6px 14px -6px rgba(76, 175, 80, .7);
+      position: relative;
+    }
+
+    .action-bar .charge .amt {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ================================================================
+     TREATMENTS — informational CFD states, re-grounded on real chrome
+     ================================================================ */
+
+    /* --- existing POS priority bar (orange) — the real one to reconcile with --- */
+    .pos-alert {
+      display: none;
+      height: 24px;
+      flex: none;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      background: var(--orange);
+      color: #fff;
+      font-size: 12px;
+      font-weight: var(--weight-bold);
+      z-index: 6;
+    }
+
+    body[data-posalert="1"] .pos-alert {
+      display: flex;
+    }
+
+    .pos-alert .pa-msg {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .pos-alert .pa-right {
+      margin-left: auto;
+      opacity: .95;
+      font-weight: var(--weight-semibold);
+    }
+
+    /* --- T1 · CFD status strip (in-flow, stacks directly under the POS bar) --- */
+    .v-strip {
+      display: none;
+      height: 26px;
+      flex: none;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      font-size: 13px;
+      font-weight: var(--weight-heavy);
+      color: #fff;
+      background: var(--state-color);
+    }
+
+    body[data-treat="strip"] .v-strip {
+      display: flex;
+    }
+
+    .v-strip.subtle {
+      background: var(--grey-1);
+      color: var(--grey-12);
+      border-bottom: 1px solid var(--grey-2);
+    }
+
+    .v-strip .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: currentColor;
+      flex: none;
+    }
+
+    .v-strip.subtle .dot {
+      background: var(--state-color);
+    }
+
+    .v-strip .cfd-tag {
+      font-size: var(--text-xxs);
+      font-weight: var(--weight-heavy);
+      letter-spacing: .1em;
+      opacity: .7;
+    }
+
+    .v-strip .sep {
+      opacity: .55;
+      font-weight: var(--weight-bold);
+    }
+
+    .v-strip .sub {
+      font-weight: var(--weight-semibold);
+      opacity: .92;
+    }
+
+    /* --- T5 · combined strip — POS state + CFD state in one band --- */
+    .v-combined {
+      display: none;
+      height: 28px;
+      flex: none;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: var(--grey-13);
+      color: #fff;
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+    }
+
+    body[data-treat="combined"] .v-combined {
+      display: flex;
+    }
+
+    /* the standalone orange bar would be redundant here */
+    body[data-treat="combined"] .pos-alert {
+      display: none;
+    }
+
+    .v-combined .cx {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .v-combined .cx.cfd {
+      margin-left: auto;
+    }
+
+    .v-combined .cxlab {
+      font-size: var(--text-xxs);
+      font-weight: var(--weight-heavy);
+      letter-spacing: .1em;
+      color: var(--grey-6);
+    }
+
+    .v-combined .cxmsg {
+      font-weight: var(--weight-semibold);
+      color: #fff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .v-combined .cxdot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex: none;
+    }
+
+    .v-combined .cxic {
+      color: var(--grey-6);
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+
+    .v-combined .cxic svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .v-combined .cxdiv {
+      width: 1px;
+      height: 16px;
+      background: #3c444c;
+      flex: none;
+    }
+
+    /* --- T2 · status line (text above the operator name, no chrome) --- */
+    .v-chip {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+      color: var(--grey-4);
+      white-space: nowrap;
+      max-width: 210px;
+    }
+
+    body[data-treat="chip"] .ord-top .v-chip {
+      display: inline-flex;
+    }
+
+    .v-chip .cfd-ic {
+      color: var(--grey-6);
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+
+    .v-chip .cfd-ic svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .v-chip .txt {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #fff;
+      font-weight: var(--weight-bold);
+    }
+
+    .v-chip .cdot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--state-color);
+      flex: none;
+    }
+
+    @keyframes ping {
+      0% {
+        transform: scale(.8);
+        opacity: .6
+      }
+
+      100% {
+        transform: scale(1.5);
+        opacity: 0
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* --- T3 · mirror card — floating, draggable, minimizes to a bubble --- */
+    .v-mirror {
+      display: none;
+      position: absolute;
+      z-index: 8;
+      left: 16px;
+      top: 96px;
+      width: 290px;
+      border-radius: var(--radius-m);
+      background: #2f373e;
+      border: 1px solid #3c444c;
+      box-shadow: 0 18px 40px -14px rgba(0, 0, 0, .6);
+      overflow: hidden;
+    }
+
+    body[data-treat="mirror"] .v-mirror {
+      display: block;
+    }
+
+    body[data-treat="mirror"][data-mirror-min="1"] .v-mirror {
+      display: none;
+    }
+
+    .mir-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border-bottom: 1px solid #3c444c;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .mir-head:active {
+      cursor: grabbing;
+    }
+
+    .mir-head .mir-grip {
+      color: var(--grey-7);
+      font-size: 12px;
+      letter-spacing: -1px;
+    }
+
+    .mir-head .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--conn-color);
+    }
+
+    .mir-head .lbl {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--grey-5);
+    }
+
+    .mir-head .conn {
+      margin-left: auto;
+      font-size: var(--text-xxs);
+      font-weight: var(--weight-bold);
+      color: var(--conn-color);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .mir-head .mir-min {
+      color: var(--grey-4);
+      font-weight: var(--weight-bold);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 3px;
+    }
+
+    .mir-body {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+    }
+
+    /* minimized bubble */
+    .mirror-bubble {
+      display: none;
+      position: absolute;
+      z-index: 8;
+      left: 16px;
+      top: 96px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #2f373e;
+      border: 1px solid #3c444c;
+      box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .7);
+      cursor: grab;
+      touch-action: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body[data-treat="mirror"][data-mirror-min="1"] .mirror-bubble {
+      display: flex;
+    }
+
+    .mirror-bubble:active {
+      cursor: grabbing;
+    }
+
+    .mirror-bubble .mb-glyph {
+      color: #fff;
+      font-size: 18px;
+      font-weight: var(--weight-bold);
+    }
+
+    body[data-spin="1"] .mirror-bubble .mb-glyph {
+      animation: spin 1s linear infinite;
+    }
+
+    .mirror-bubble .mb-dot {
+      position: absolute;
+      right: 2px;
+      top: 2px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--state-color);
+      border: 2px solid #2f373e;
+    }
+
+    .v-mirror .status .st-title {
+      font-size: var(--text-ms);
+      font-weight: var(--weight-bold);
+      color: #fff;
+    }
+
+    .v-mirror .status .st-sub {
+      font-size: var(--text-xs);
+      color: var(--grey-5);
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .mini-cfd {
+      width: 104px;
+      height: 72px;
+      border-radius: 8px;
+      flex: none;
+      overflow: hidden;
+      background: #14181c;
+      color: #fff;
+      padding: 9px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      box-shadow: 0 0 0 3px #3c444c;
+    }
+
+    .mini-cfd .mini-title {
+      font-size: 8px;
+      font-weight: var(--weight-bold);
+      color: var(--grey-6);
+    }
+
+    .mini-cfd .mini-big {
+      font-size: 13px;
+      font-weight: var(--weight-heavy);
+    }
+
+    .mini-cfd .mini-line {
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, .16);
+    }
+
+    .mini-cfd .mini-line.short {
+      width: 55%;
+    }
+
+    /* --- T4 · CFD side-panel peek (Gmail-style, HERO) --- */
+    /* the always-present edge tab — placement is switchable (data-peek-pos) */
+    .peek-tab {
+      display: none;
+      position: absolute;
+      z-index: 9;
+      background: var(--white);
+      border: 1px solid var(--grey-3);
+      box-shadow: 0 6px 16px -8px rgba(16, 24, 40, .35);
+      border-radius: var(--radius-round);
+      padding: 7px 13px;
+      cursor: pointer;
+      align-items: center;
+      gap: 8px;
+      flex-direction: row;
+    }
+
+    body[data-treat="peek"][data-peek="closed"] .peek-tab {
+      display: inline-flex;
+    }
+
+    .peek-tab .lbl {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-heavy);
+      letter-spacing: .12em;
+      color: var(--grey-10);
+    }
+
+    .peek-tab .chev {
+      font-size: 14px;
+      color: var(--grey-9);
+      font-weight: var(--weight-bold);
+    }
+
+    /* tab dot reflects CONNECTION HEALTH (green/orange/red), same as the
+       expanded indicator — not the activity color. No pulse. */
+    .peek-tab .pdot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--conn-color);
+    }
+
+    /* placement variants */
+    body[data-peek-pos="right"] .peek-tab {
+      right: 0;
+      top: 64%;
+      transform: translateY(-50%);
+      flex-direction: column;
+      padding: 13px 8px;
+      border-right: none;
+      border-radius: 12px 0 0 12px;
+    }
+
+    body[data-peek-pos="right"] .peek-tab .lbl {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      letter-spacing: .14em;
+    }
+
+    /* top-center, hanging from the very top edge of the screen */
+    body[data-peek-pos="top"] .peek-tab {
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+    }
+
+    body[data-peek-pos="charge"] .peek-tab {
+      right: 14px;
+      bottom: 74px;
+    }
+
+    /* the panel — overlays the catalog (no tile reflow), two sizes */
+    .peek-panel {
+      display: none;
+      position: absolute;
+      z-index: 10;
+      right: 0;
+      width: 300px;
+      background: var(--white);
+      flex-direction: column;
+      box-shadow: -14px 0 34px -18px rgba(16, 24, 40, .4);
+    }
+
+    body[data-treat="peek"]:not([data-peek="closed"]) .peek-panel {
+      display: flex;
+    }
+
+    /* full: full-height right dock */
+    body[data-treat="peek"][data-peek="full"] .peek-panel {
+      top: 0;
+      bottom: 0;
+      border-left: 1px solid var(--grey-2);
+    }
+
+    /* compact: small floating card, bottom-right, hugging its content */
+    body[data-treat="peek"][data-peek="compact"] .peek-panel {
+      top: auto;
+      bottom: 82px;
+      right: 16px;
+      width: 292px;
+      border: 1px solid var(--grey-2);
+      border-radius: var(--radius-l);
+      overflow: hidden;
+      box-shadow: 0 18px 44px -14px rgba(16, 24, 40, .44);
+    }
+
+    body[data-peek="compact"] .pk-body,
+    body[data-peek="compact"] .pk-foot {
+      display: none;
+    }
+
+    body[data-peek="full"] .pk-compact {
+      display: none;
+    }
+
+    .peek-panel .pk-head {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--grey-2);
+    }
+
+    .peek-panel .pk-head .pk-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--conn-color);
+    }
+
+    .peek-panel .pk-head .pk-title {
+      font-size: var(--text-ms);
+      font-weight: var(--weight-heavy);
+    }
+
+    .peek-panel .pk-head .pk-sp {
+      flex: 1;
+    }
+
+    /* connection indicator — colored by CONNECTION HEALTH, not activity */
+    .peek-panel .pk-head .pk-conn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: var(--text-xxs);
+      font-weight: var(--weight-bold);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--conn-color);
+    }
+
+    .peek-panel .pk-head .pk-conn .cdot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--conn-color);
+    }
+
+    .peek-panel .pk-btn {
+      color: var(--grey-7);
+      font-weight: var(--weight-bold);
+      font-size: 15px;
+      cursor: pointer;
+      padding: 0 3px;
+      line-height: 1;
+    }
+
+    body[data-peek="compact"] .pk-restore {
+      display: none;
+    }
+
+    body[data-peek="full"] .pk-expand {
+      display: none;
+    }
+
+    /* compact body */
+    .pk-compact {
+      padding: 13px 14px 15px;
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+    }
+
+    .pk-compact .pk-cglyph {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--state-tint);
+      color: var(--state-color);
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      font-weight: var(--weight-bold);
+      flex: none;
+    }
+
+    body[data-spin="1"] .pk-compact .pk-cglyph {
+      animation: spin 1s linear infinite;
+    }
+
+    .pk-compact .pk-ctitle {
+      font-size: var(--text-ms);
+      font-weight: var(--weight-bold);
+    }
+
+    .pk-compact .pk-csub {
+      font-size: var(--text-s);
+      color: var(--grey-9);
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .pk-compact .pk-expand-cta {
+      margin-top: 9px;
+      display: inline-block;
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      color: var(--green-dark-2);
+      cursor: pointer;
+    }
+
+    /* full body */
+    .peek-panel .pk-body {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .pk-screen {
+      border-radius: 12px;
+      background: #14181c;
+      color: #fff;
+      padding: 16px;
+      position: relative;
+      box-shadow: 0 0 0 4px var(--grey-1);
+      min-height: 156px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pk-screen .pk-scr-top {
+      font-size: var(--text-xs);
+      color: var(--grey-6);
+      font-weight: var(--weight-bold);
+    }
+
+    .pk-screen .pk-scr-big {
+      font-size: var(--text-big);
+      font-weight: var(--weight-heavy);
+    }
+
+    .pk-screen .pk-scr-line {
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, .14);
+    }
+
+    .pk-screen .pk-scr-line.s {
+      width: 60%;
+    }
+
+    .pk-screen .pk-scr-glyph {
+      position: absolute;
+      right: 14px;
+      top: 14px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--state-color);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      font-weight: var(--weight-bold);
+    }
+
+    body[data-spin="1"] .pk-screen .pk-scr-glyph {
+      animation: spin 1s linear infinite;
+    }
+
+    .pk-status {}
+
+    .pk-status .pk-st-title {
+      font-size: var(--text-ms);
+      font-weight: var(--weight-bold);
+      color: var(--text-default);
+    }
+
+    .pk-status .pk-st-sub {
+      font-size: var(--text-s);
+      color: var(--grey-9);
+      margin-top: 4px;
+      line-height: 1.45;
+    }
+
+    .pk-foot {
+      flex: none;
+      padding: 12px 14px;
+      border-top: 1px solid var(--grey-2);
+      font-size: var(--text-xs);
+      color: var(--grey-8);
+      font-weight: var(--weight-semibold);
+    }
+
+    /* ---------------- tables ---------------- */
+    .cmp,
+    .cmp-t {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+      border: 1px solid var(--grey-2);
+      border-radius: var(--radius-l);
+      overflow: hidden;
+    }
+
+    .cmp th,
+    .cmp td,
+    .cmp-t th,
+    .cmp-t td {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: var(--text-s);
+      vertical-align: top;
+      border-bottom: 1px solid var(--grey-1);
+    }
+
+    .cmp th,
+    .cmp-t th {
+      background: var(--grey-05);
+      font-weight: var(--weight-bold);
+      color: var(--grey-10);
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .cmp td:first-child,
+    .cmp-t td:first-child {
+      font-weight: var(--weight-bold);
+      white-space: nowrap;
+    }
+
+    .cmp tr:last-child td,
+    .cmp-t tr:last-child td {
+      border-bottom: none;
+    }
+
+    .cmp .tier-row td {
+      background: var(--grey-05);
+      font-weight: var(--weight-heavy);
+      text-transform: uppercase;
+      font-size: var(--text-xxs);
+      letter-spacing: .08em;
+      color: var(--grey-9);
+      padding: 8px 16px;
+    }
+
+    .dotc {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-right: 7px;
+    }
+
+    .treat {
+      display: inline-block;
+      font-size: var(--text-xxs);
+      font-weight: var(--weight-bold);
+      padding: 2px 9px;
+      border-radius: var(--radius-round);
+    }
+
+    .treat.strip {
+      background: #EEF1F4;
+      color: #454F59;
+    }
+
+    .treat.chip {
+      background: #E3F0FD;
+      color: #12609e;
+    }
+
+    .treat.inline {
+      background: #EDECF7;
+      color: #4b3f8a;
+    }
+
+    .treat.mirror {
+      background: #E7EEF3;
+      color: #3a5566;
+    }
+
+    .treat.toast {
+      background: #FFEBCC;
+      color: #8a5300;
+    }
+
+    .treat.peek {
+      background: #E0F0E3;
+      color: #2f6f33;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: var(--text-xxs);
+      font-weight: var(--weight-bold);
+      padding: 2px 8px;
+      border-radius: var(--radius-round);
+      background: var(--grey-1);
+      color: var(--grey-10);
+    }
+
+    .note {
+      font-size: var(--text-xs);
+      color: var(--grey-8);
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    .srcs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .srcs a,
+    .srcs span {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+      color: var(--grey-9);
+      background: var(--white);
+      border: 1px solid var(--grey-2);
+      padding: 5px 11px;
+      border-radius: var(--radius-round);
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body data-mode="rec" data-treat="peek" data-state="phone" data-live="0" data-spin="0" data-peek="compact"
+  data-peek-pos="right" data-peek-quiet="0" data-posalert="0" data-mirror-min="0">
+  <div class="page">
+
+    <div class="page-head">
+      <p class="eyebrow">Figure · Loyalty-on-CFD (FGR3-9875) · design exploration · informational states</p>
+      <h1>Reflecting the CFD — the quiet cases</h1>
+      <p class="lede">This file narrows to the <b>informational</b> CFD states — the ones where the cashier
+        needs <i>awareness</i>, not a decision: the customer viewing the order, signing up for loyalty, being
+        matched, tipping, signing. No blocking pop-ups. Grounded on the <b>real</b> Register
+        layout, it compares five lightweight treatments — led by a Gmail-style <b>“CFD” side-panel peek</b>
+        that stays out of the way until you want it.</p>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <span>Treatment</span>
+        <div class="seg treatments" id="treatments">
+          <button class="rec" data-t="rec" aria-pressed="true">★ Recommended</button>
+          <button data-t="peek">CFD peek</button>
+          <button data-t="chip">Status line</button>
+          <button data-t="mirror">Mirror card</button>
+          <button data-t="strip">CFD strip</button>
+          <button data-t="combined">Combined strip</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span>Customer state on CFD (informational only)</span>
+        <div class="seg states" id="states"></div>
+      </div>
+      <div class="control-group">
+        <span>Peek tab position <em style="font-weight:var(--weight-regular);text-transform:none;letter-spacing:0;color:var(--grey-7)">(peek only)</em></span>
+        <div class="seg" id="peekpos">
+          <button data-p="right" aria-pressed="true">Right</button>
+          <button data-p="top">Top center</button>
+          <button data-p="charge">Near charge</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span>Existing POS status bar</span>
+        <div class="seg" id="posalert">
+          <button data-a="0" aria-pressed="true">Off</button>
+          <button data-a="1">On — data download failed</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="why" id="why"></div>
+
+    <div class="stage">
+      <div class="device-scaler">
+        <div class="device" id="device">
+          <div class="ios-bar"><span>8:32 AM &nbsp;Thu Sep 19</span><span class="icons">📶 &nbsp;93% 🔋</span></div>
+
+          <!-- existing high-priority POS status bar (toggle in controls) -->
+          <div class="pos-alert">
+            <span class="pa-msg">⚠ Data Download Failed <span style="opacity:.85;font-weight:var(--weight-semibold)">— tap for more info</span></span>
+            <span class="pa-right">Downloading data 33%</span>
+          </div>
+
+          <!-- T1 · CFD status strip (stacks under the POS bar) -->
+          <div class="v-strip" id="strip"></div>
+
+          <!-- T5 · combined strip — POS state + CFD state in one band -->
+          <div class="v-combined" id="combined">
+            <span class="cx pos">
+              <span class="cxdot" id="comb-pos-dot"></span>
+              <span class="cxlab">POS</span>
+              <span class="cxmsg" id="comb-pos-msg"></span>
+            </span>
+            <span class="cxdiv"></span>
+            <span class="cx cfd">
+              <span class="cxic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <rect x="3" y="4" width="18" height="13" rx="1.5" />
+                  <path d="M8.5 20h7M12 17v3" />
+                </svg></span>
+              <span class="cxlab">CFD</span>
+              <span class="cxmsg" id="comb-cfd-msg"></span>
+              <span class="cxdot" id="comb-cfd-dot"></span>
+            </span>
+          </div>
+
+          <div class="app">
+            <!-- ===== LEFT: order ===== -->
+            <div class="order">
+              <div class="ord-top">
+                <span class="burger">☰</span>
+                <span class="brand"><span class="fig">Figure</span><span class="swap">⇄</span></span>
+                <span class="rest">
+                  <span class="v-chip" id="chip">
+                    <span class="cfd-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.8">
+                        <rect x="3" y="4" width="18" height="13" rx="1.5" />
+                        <path d="M8.5 20h7M12 17v3" />
+                      </svg></span>
+                    <span class="txt" id="chip-txt"></span>
+                    <span class="cdot"></span>
+                  </span>
+                  <span class="who">
+                    <span class="name">Roman's Restaurant</span>
+                    <span class="live"></span>
+                  </span>
+                </span>
+              </div>
+
+              <div class="status-bar"><span>Open · R1-00344</span><span>Unpaid</span></div>
+              <div class="status-sub"><span>9/19, 8:32 am</span><span class="spacer"></span><span>&lt;1m</span><span
+                  class="dots">⋮</span></div>
+
+              <div class="fields">
+                <div class="f">
+                  <div class="val">Roman's Restaura…</div>
+                  <div class="lbl">Assignee</div>
+                </div>
+                <div class="f">
+                  <div class="val empty">—</div>
+                  <div class="lbl">Assignment</div>
+                </div>
+              </div>
+
+              <div class="cust-head"><span>Customer</span><span>Guests</span></div>
+              <div class="cust-row"><span class="cn">Fidorka</span><span class="cv">$250.00</span></div>
+
+              <div class="ord-mid"></div>
+
+              <div class="ord-foot">
+                <div class="foot-row"><span class="note">✎ Add note</span><span class="preauth">PRE AUTHORIZE</span>
+                </div>
+                <div class="pt-row">
+                  <div class="pt"><span>± Pricing</span><span class="v">—</span></div>
+                  <div class="pt"><span>Tax</span><span class="v">—</span></div>
+                </div>
+                <div class="bottom-btns">
+                  <div class="bb"><span class="ic">🗑</span>Delete</div>
+                  <div class="bb"><span class="ic">＋</span>New</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== RIGHT: catalog ===== -->
+            <div class="cat">
+              <div class="cat-top">
+                <span class="crumb">Top</span>
+                <span class="rgt">
+                  <span class="ico" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2">
+                      <circle cx="11" cy="11" r="7" />
+                      <path d="M20 20l-3.5-3.5" />
+                    </svg></span>
+                  <span class="ico" title="Calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2">
+                      <rect x="3" y="5" width="18" height="16" rx="2" />
+                      <path d="M3 9h18M8 3v4M16 3v4" />
+                    </svg></span>
+                  <span class="viewseg">
+                    <span class="vs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                      </svg></span>
+                    <span class="vs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="16" rx="1" />
+                        <path d="M3 10h18M9 4v16" />
+                      </svg></span>
+                    <span class="vs on"><svg viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="3" y="3" width="7.5" height="7.5" rx="1.2" />
+                        <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.2" />
+                        <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.2" />
+                        <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.2" />
+                      </svg></span>
+                  </span>
+                  <span class="lo-toggle"><span class="lo on">Layout</span><span class="lo">Orders</span></span>
+                </span>
+              </div>
+
+              <div class="tabs"><span class="tb on">Default Tab</span><span class="tb">New Tab</span></div>
+
+              <div class="grid" id="grid"></div>
+
+              <div class="action-bar">
+                <span class="ab on">COURSE</span>
+                <span class="ab">ORDER</span>
+                <span class="ab">PRINT</span>
+                <span class="charge"><span>CHARGE</span><span class="amt">$250.00</span></span>
+              </div>
+            </div>
+
+            <!-- T3 · mirror card — floating / draggable / minimizes to a bubble -->
+            <div class="v-mirror" id="mirror">
+              <div class="mir-head" id="mir-head">
+                <span class="mir-grip">⣿</span>
+                <span class="dot"></span>
+                <span class="lbl">Customer display</span>
+                <span class="conn" id="mirror-conn">Connected</span>
+                <span class="mir-min" id="mir-min" title="Minimize">—</span>
+              </div>
+              <div class="mir-body">
+                <div class="mini-cfd" id="mini">
+                  <div class="mini-title" id="mini-title">Your order · $250.00</div>
+                  <div class="mini-big" id="mini-big"></div>
+                  <div class="mini-line"></div>
+                  <div class="mini-line short"></div>
+                </div>
+                <div class="status">
+                  <div class="st-title" id="mirror-title"></div>
+                  <div class="st-sub" id="mirror-sub"></div>
+                </div>
+              </div>
+            </div>
+            <div class="mirror-bubble" id="mirror-bubble" title="Customer display — tap to restore">
+              <span class="mb-glyph" id="mb-glyph">★</span>
+              <span class="mb-dot"></span>
+            </div>
+
+            <!-- T4 · CFD peek tab + panel -->
+            <div class="peek-tab" id="peek-tab">
+              <span class="pdot"></span>
+              <span class="lbl">CFD</span>
+              <span class="chev">‹</span>
+            </div>
+            <div class="peek-panel" id="peek-panel">
+              <div class="pk-head">
+                <span class="pk-dot"></span>
+                <span class="pk-title">Customer display</span>
+                <span class="pk-sp"></span>
+                <span class="pk-conn" id="pk-conn"><span class="cdot"></span><span id="pk-conn-txt">Connected</span></span>
+                <span class="pk-btn pk-expand" id="pk-expand" title="Expand to full mirror">⤢</span>
+                <span class="pk-btn pk-restore" id="pk-restore" title="Shrink to card">⤡</span>
+                <span class="pk-btn pk-close" id="pk-close" title="Collapse to tab">×</span>
+              </div>
+
+              <!-- compact card body -->
+              <div class="pk-compact">
+                <span class="pk-cglyph" id="pk-cglyph">★</span>
+                <div>
+                  <div class="pk-ctitle" id="pk-ctitle"></div>
+                  <div class="pk-csub" id="pk-csub"></div>
+                  <span class="pk-expand-cta" id="pk-expand-cta">Show full interaction  ⤢</span>
+                </div>
+              </div>
+
+              <!-- full mirror body -->
+              <div class="pk-body">
+                <div class="pk-screen">
+                  <div class="pk-scr-glyph" id="pk-glyph">★</div>
+                  <div class="pk-scr-top" id="pk-top">Your order · $250.00</div>
+                  <div class="pk-scr-big" id="pk-big"></div>
+                  <div class="pk-scr-line"></div>
+                  <div class="pk-scr-line s"></div>
+                </div>
+                <div class="pk-status">
+                  <div class="pk-st-title" id="pk-title"></div>
+                  <div class="pk-st-sub" id="pk-sub"></div>
+                </div>
+              </div>
+              <div class="pk-foot">Fidorka · order R1-00344 · live from the customer display</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2>Recommended routing — informational states only</h2>
+    <p class="h2sub">These are the states where nothing is <i>required</i> of the cashier. The proposal: the
+      <b>CFD peek</b> is the persistent ambient home — a quiet edge tab at rest, a small floating card while the
+      customer is acting, expanding to a full live mirror on demand. The two discrete <b>result</b> moments
+      (a customer got matched / signed up) surface in the persistent <b>status chip</b> above the operator name —
+      it stays put, unlike a toast you'd glance away from. The <b>error</b> (CFD disconnected) earns a persistent
+      <b>strip</b>, which stacks under the existing orange POS priority bar rather than fighting it.
+    </p>
+    <table class="cmp" id="routing"></table>
+    <p class="note">Routing is a proposal, not settled product. Dropped from this slice: <b>activity feed</b>
+      (more history than a cashier needs mid-transaction), <b>blocking popover</b> (reserved for the action
+      states — confirm sign-up, pick profile, interrupt-to-charge — which live in a separate file),
+      <b>customer-row inline</b> (no room inside the item list), and <b>toast</b> (nothing persistent — glance
+      away and it's gone). Open question in <code>#proj-cfd-loyalty</code>: is a “customer didn't finish” signal
+      worth a dedicated CFD→POS message at all?</p>
+
+    <h2>The five treatments, compared</h2>
+    <table class="cmp-t">
+      <thead>
+        <tr>
+          <th>Treatment</th>
+          <th>Footprint</th>
+          <th>Best for</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>CFD peek ★</td>
+          <td><span class="tag">On-demand · edge tab → card → full</span></td>
+          <td>A single, always-there home for “what's on the CFD” that never blocks. Borrowed from Gmail's side panel —
+            a labeled tab at rest, a compact card while active, expanding to a full live mirror. The panel overlays the
+            tiles (no reflow). The tab's dot shows <i>connection health</i> (green/orange/red), separate from the activity
+            color, and its placement is switchable (right · top-center · near-charge).</td>
+          <td>New pattern for Register; the tab must be discoverable, and its best resting spot is still an open question
+            (hence the placement switcher).</td>
+        </tr>
+        <tr>
+          <td>Status line</td>
+          <td><span class="tag">Glanceable · text only</span></td>
+          <td>A plain text line <i>above the operator name</i> — a screen icon (= CFD), the status text, and a state-colored
+            dot. No chrome, so it tucks into the header without shoving content. Strong home for the two result moments
+            (matched / signed up).</td>
+          <td>One short line only; sits away from the catalog where taps happen.</td>
+        </tr>
+        <tr>
+          <td>Mirror card</td>
+          <td><span class="tag">Rich · draggable · minimizes</span></td>
+          <td>Empathy — the cashier sees roughly what the customer sees, so “help them” moments are obvious. Floats free:
+            drag it anywhere, or minimize to a small bubble that docks out of the way.</td>
+          <td>Biggest footprint when open; can pull the eye off ringing up. Relies on the cashier parking it sensibly.</td>
+        </tr>
+        <tr>
+          <td>CFD strip</td>
+          <td><span class="tag">Ambient · tiny</span></td>
+          <td>Always-on connection + steady state in one line. Reuses the real status-bar pattern; cheap to ship. Stacks
+            directly under the orange POS priority bar so both can show at once (toggle it in the controls).</td>
+          <td>One line, no history, easy to miss a change. Adds a second full-width band above the app.</td>
+        </tr>
+        <tr>
+          <td>Combined strip</td>
+          <td><span class="tag">Ambient · one band for both</span></td>
+          <td>Folds POS state and CFD state into a <i>single</i> band — POS on the left, CFD on the right, each with its own
+            dot. Only one full-width strip instead of two stacked; the POS side tracks the priority-bar toggle.</td>
+          <td>Crowded when both sides have something to say; a high-priority POS alert and live CFD activity compete for
+            the same line.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Grounded in</h2>
+    <div class="srcs">
+      <span>POS Schematic charge.png (real layout)</span>
+      <span>src/statusBar/StatusBarContainer.tsx</span>
+      <span>src/notifications/…/Notification.tsx</span>
+      <span>src/protocol/…/customerFacingDisplay/handlers/order.ts</span>
+      <span>src/payments/receiptConfirmation/components/CFDMessage.tsx</span>
+      <a href="https://twbrds.atlassian.net/browse/FGR3-9875">FGR3-9875</a>
+      <span>Figma: Loyalty on CFD (CFD, POS)</span>
+      <span>#proj-cfd-loyalty</span>
+      <span>Gmail “Show side panel” (peek reference)</span>
+    </div>
+    <p class="note">Static HTML prototype · real Register layout traced from the schematic · nothing here ships.
+      Companion to the full pattern×state lab in <code>2026-07-14-cfd-pos-status.html</code>. See <code>notes.md</code>.
+    </p>
+  </div>
+
+  <script>
+    const C = {
+      green: { color: '#4CAF50', tint: '#E0F0E3', ink: '#2f6f33' },
+      blue: { color: '#2196F3', tint: '#E3F0FD', ink: '#12609e' },
+      loyalty: { color: '#FF809A', tint: '#FFE6EC', ink: '#a13a53' },
+      orange: { color: '#FF9800', tint: '#FFEBCC', ink: '#8a5300' },
+      red: { color: '#EF5350', tint: '#FDE4E4', ink: '#b3201d' },
+      grey: { color: '#66717D', tint: '#EEF1F4', ink: '#454F59' },
+    };
+    // tier: idle | ambient | pending | result | error   (all informational)
+    const STATES = {
+      ready: {
+        tier: 'idle', c: 'grey', rec: 'peek', glyph: '✓', chip: 'CFD ready', quiet: true,
+        title: 'CFD connected · ready', sub: 'Showing the live order. Waiting for the customer.',
+        why: 'Steady, nothing happening — the peek sits as a quiet tab; no badge, no pulse.',
+        big: '$250.00', top: 'Your order', subtle: true
+      },
+      viewing: {
+        tier: 'ambient', c: 'blue', rec: 'peek', glyph: '👁', chip: 'Viewing order', live: true,
+        title: 'Customer viewing order', sub: 'Following the items as you ring them up.',
+        why: 'Ambient awareness — the peek badges and pulses; open it to see their screen. No interruption.',
+        big: '$250.00', top: 'Your order'
+      },
+      entering: {
+        tier: 'ambient', c: 'blue', rec: 'peek', glyph: '✎', chip: 'Entering details', live: true,
+        title: 'Customer entering details', sub: 'Filling in receipt info on the CFD.',
+        why: 'Ambient — the peek shows it. Only escalates to a popover if the cashier tries to charge (that lives in the action-states file).',
+        big: 'Add details', top: 'Receipt info'
+      },
+      phone: {
+        tier: 'ambient', c: 'loyalty', rec: 'peek', glyph: '⌨', chip: 'Loyalty sign-up', live: true,
+        title: 'Customer joining Rewards', sub: 'Entering their phone number to sign up.',
+        why: 'Ambient — good to know a sign-up is underway; nothing to do yet. The peek pulses in loyalty pink.',
+        big: 'Enter phone', top: 'Join Rewards'
+      },
+      checking: {
+        tier: 'pending', c: 'blue', rec: 'peek', glyph: '⟳', chip: 'Checking…', spin: true,
+        title: 'Looking up customer', sub: 'Matching the phone number to a profile…',
+        why: 'Transient system step — the peek glyph spins; the outcome routes to a result (the status chip) or, if >1 match, an action popover.',
+        big: 'One sec…', top: 'Checking'
+      },
+      assignedMember: {
+        tier: 'result', c: 'loyalty', rec: 'chip', glyph: '★', chip: 'Fidorka · member', assigned: true,
+        title: 'Customer assigned', sub: 'Fidorka · Rewards member matched to this order.',
+        why: 'One profile matched → assigned automatically. It surfaces in the persistent status chip above the operator name — no transient toast to miss.',
+        big: 'Hi Fidorka', top: 'Rewards'
+      },
+      assignedNew: {
+        tier: 'result', c: 'loyalty', rec: 'chip', glyph: '★', chip: 'New member', assigned: true,
+        title: 'New customer signed up', sub: 'Fidorka joined Rewards and was assigned to the order.',
+        why: '0 matches → created & assigned. Per the epic annotation this earns a POS notification — here, the persistent status chip above the operator name.',
+        big: 'Welcome!', top: 'Rewards'
+      },
+      tipping: {
+        tier: 'ambient', c: 'blue', rec: 'peek', glyph: '%', chip: 'Choosing tip', live: true,
+        title: 'Customer choosing a tip', sub: 'On the tip screen.',
+        why: 'Ambient — the peek reflects it; the cashier waits, no action.',
+        big: 'Add a tip?', top: 'Tip'
+      },
+      signing: {
+        tier: 'ambient', c: 'blue', rec: 'peek', glyph: '✍', chip: 'Signing', live: true,
+        title: 'Customer signing', sub: 'Signature in progress.',
+        why: 'Ambient — the peek reflects it; resolves on its own.',
+        big: 'Sign here', top: 'Signature'
+      },
+      done: {
+        tier: 'idle', c: 'green', rec: 'peek', glyph: '✓', chip: 'Done', quiet: true,
+        title: 'Customer done', sub: 'Details, tip and signature received. Ready to charge.',
+        why: 'Back to a calm steady state — the peek settles to a quiet green tab.',
+        big: 'Thank you', top: 'Complete', subtle: true
+      },
+      disconnected: {
+        tier: 'error', c: 'red', rec: 'strip', glyph: '⚠', chip: 'Disconnected',
+        title: 'CFD disconnected', sub: 'Lost connection. Trying to reconnect…',
+        why: 'Persistent and unmissable, but not modal — a red strip, like the existing offline bar. The one informational state that shouldn’t hide in a peek.',
+        big: '—', top: 'No signal'
+      },
+    };
+
+    const TIERS = {
+      idle: { label: 'Steady' },
+      ambient: { label: 'Ambient — just awareness' },
+      pending: { label: 'Pending — system working' },
+      result: { label: 'Result — informational outcome' },
+      error: { label: 'Error' },
+    };
+
+    const GROUPS = [
+      ['Steady', ['ready', 'done']],
+      ['Ambient', ['viewing', 'entering', 'phone', 'tipping', 'signing']],
+      ['Loyalty result', ['checking', 'assignedMember', 'assignedNew']],
+      ['Error', ['disconnected']],
+    ];
+    const shortLabel = {
+      ready: 'Ready', done: 'Done',
+      viewing: 'Viewing', entering: 'Entering details', phone: 'Loyalty sign-up', tipping: 'Tipping', signing: 'Signing',
+      checking: 'Checking…', assignedMember: 'Assigned (member)', assignedNew: 'Assigned (new)',
+      disconnected: 'Disconnected',
+    };
+
+    // catalog tiles (traced from the schematic)
+    const TILES = [
+      { n: 'Steak', k: 'green', ic: 'folder', p: '$35.00', badge: '-13' },
+      { n: 'MASO', k: 'green', ic: 'cart', p: '$400.00' },
+      { n: 'Mrkve', k: 'pink', ic: 'leaf', p: '$3.00' },
+      { n: 'Salad', k: 'pink', ic: 'leaf', p: '$0.00 +' },
+      { n: 'ice cream', k: 'green', ic: 'folder', p: '$0.00 +' },
+      { n: 'Jahody se slehackou', k: 'pink', ic: 'leaf', p: '$200.00' },
+      { n: 'Salad', k: 'pink', ic: 'leaf', p: '$0.00 +' },
+      { n: 'Tuc', k: 'green', ic: 'folder', p: '$15.00' },
+      { n: 'Fidorka', k: 'green', ic: 'folder', p: '$250.00', badge: '1' },
+    ];
+    const ICONS = {
+      folder: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4l2 2.2h7A1.5 1.5 0 0 1 19 8.7V17a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 3 17V6.5Z" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>',
+      cart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5h2l2 10h9l2-7H7"/><circle cx="9" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/></svg>',
+      leaf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21V11"/><path d="M12 11c0-3 2-5 6-5 0 4-2 6-6 6Z"/><path d="M12 13c0-2.5-2-4-5-4 0 3 2 5 5 5Z"/></svg>',
+    };
+
+    const body = document.body;
+    const grid = document.getElementById('grid');
+    grid.innerHTML = TILES.map(t => `
+    <div class="tile ${t.k}">
+      <div class="tname">${t.n}</div>
+      ${t.badge ? `<div class="badge">${t.badge}</div>` : ''}
+      <div class="tbot"><span class="ti">${ICONS[t.ic]}</span><span class="tp">${t.p}</span></div>
+    </div>`).join('');
+
+    function currentTreat(key) {
+      return body.dataset.mode === 'rec' ? STATES[key].rec : body.dataset.mode;
+    }
+    function labelForTreat(t) {
+      return ({ strip: 'CFD strip', chip: 'Status line', mirror: 'Mirror card', peek: 'CFD peek', combined: 'Combined strip' })[t] || t;
+    }
+
+    function applyState(key) {
+      const s = STATES[key], c = C[s.c];
+      const offline = key === 'disconnected';
+      const dev = document.getElementById('device');
+      dev.style.setProperty('--state-color', c.color);
+      dev.style.setProperty('--state-tint', c.tint);
+      dev.style.setProperty('--state-ink', c.ink);
+      // connection health is independent of the activity color: green when up, red when down
+      dev.style.setProperty('--conn-color', offline ? C.red.color : C.green.color);
+      document.getElementById('states').style.setProperty('--state-color', c.color);
+
+      const treat = currentTreat(key);
+      body.dataset.state = key;
+      body.dataset.treat = treat;
+      body.dataset.live = s.live ? '1' : '0';
+      body.dataset.spin = s.spin ? '1' : '0';
+      body.dataset.peekQuiet = s.quiet ? '1' : '0';
+
+      const connTxt = offline ? 'Offline' : 'Connected';
+
+      // strip
+      const strip = document.getElementById('strip');
+      strip.classList.toggle('subtle', !!s.subtle);
+      strip.innerHTML = `<span class="dot"></span><span class="cfd-tag">CFD</span><span>${s.title}</span><span class="sep">·</span><span class="sub">${s.sub}</span>`;
+
+      // status line (order panel, above operator name) — cdot is state-colored via CSS
+      document.getElementById('chip-txt').textContent = s.chip || s.title;
+
+      // combined strip — POS state + CFD state in one band
+      const posOn = body.dataset.posalert === '1';
+      document.getElementById('comb-pos-msg').textContent = posOn ? 'Data download failed · 33%' : 'All systems OK';
+      document.getElementById('comb-pos-dot').style.background = posOn ? C.orange.color : C.green.color;
+      document.getElementById('comb-cfd-msg').textContent = s.title;
+      document.getElementById('comb-cfd-dot').style.background = c.color;
+
+      // mirror card + bubble
+      document.getElementById('mirror-conn').textContent = connTxt;
+      document.getElementById('mirror-title').textContent = s.title;
+      document.getElementById('mirror-sub').textContent = s.sub;
+      document.getElementById('mini-big').textContent = s.big;
+      document.getElementById('mini-title').textContent = s.top + ' · $250.00';
+      document.getElementById('mini').style.opacity = offline ? .4 : 1;
+      document.getElementById('mb-glyph').textContent = s.glyph;
+
+      // peek — full mirror
+      document.getElementById('pk-glyph').textContent = s.glyph;
+      document.getElementById('pk-top').textContent = s.top + ' · $250.00';
+      document.getElementById('pk-big').textContent = s.big;
+      document.getElementById('pk-title').textContent = s.title;
+      document.getElementById('pk-sub').textContent = s.sub;
+      document.querySelector('.pk-screen').style.opacity = offline ? .4 : 1;
+      // peek — compact card
+      document.getElementById('pk-cglyph').textContent = s.glyph;
+      document.getElementById('pk-ctitle').textContent = s.title;
+      document.getElementById('pk-csub').textContent = s.sub;
+      // peek — connection indicator (health-colored via --conn-color)
+      document.getElementById('pk-conn-txt').textContent = connTxt;
+
+      // why
+      document.getElementById('why').innerHTML =
+        `<span class="badge">${TIERS[s.tier].label}</span>`
+        + `<span><b>${s.title}</b> <span class="arrow">→</span> ${labelForTreat(treat)}</span>`
+        + `<span style="flex-basis:100%;color:var(--grey-9)">${s.why}</span>`;
+    }
+
+    // ---- build state switcher ----
+    const segStates = document.getElementById('states');
+    GROUPS.forEach(([label, keys]) => {
+      const lab = document.createElement('span'); lab.className = 'tierlabel'; lab.textContent = label; segStates.appendChild(lab);
+      keys.forEach(k => {
+        const b = document.createElement('button'); b.dataset.s = k; b.textContent = shortLabel[k];
+        b.setAttribute('aria-pressed', k === 'phone' ? 'true' : 'false');
+        b.addEventListener('click', () => {
+          segStates.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false'));
+          b.setAttribute('aria-pressed', 'true'); applyState(k);
+        });
+        segStates.appendChild(b);
+      });
+    });
+
+    // ---- treatment switcher ----
+    document.getElementById('treatments').querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        document.getElementById('treatments').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false'));
+        b.setAttribute('aria-pressed', 'true');
+        body.dataset.mode = b.dataset.t;
+        const resolved = b.dataset.t === 'rec' ? STATES[body.dataset.state].rec : b.dataset.t;
+        // whenever peek becomes active, make sure it's actually visible (compact if it was collapsed)
+        if (resolved === 'peek' && body.dataset.peek === 'closed') body.dataset.peek = 'compact';
+        applyState(body.dataset.state);
+      });
+    });
+
+    // ---- peek levels: closed (tab) → compact (card) → full (mirror) ----
+    document.getElementById('peek-tab').addEventListener('click', () => body.dataset.peek = 'compact');
+    document.getElementById('pk-expand').addEventListener('click', () => body.dataset.peek = 'full');
+    document.getElementById('pk-expand-cta').addEventListener('click', () => body.dataset.peek = 'full');
+    document.getElementById('pk-restore').addEventListener('click', () => body.dataset.peek = 'compact');
+    document.getElementById('pk-close').addEventListener('click', () => body.dataset.peek = 'closed');
+
+    // ---- peek tab placement switcher ----
+    document.getElementById('peekpos').querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        document.getElementById('peekpos').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false'));
+        b.setAttribute('aria-pressed', 'true');
+        body.dataset.peekPos = b.dataset.p;
+        // so the placement is visible, drop the peek back to its tab
+        if (body.dataset.treat === 'peek') body.dataset.peek = 'closed';
+      });
+    });
+
+    // ---- existing POS priority bar toggle ----
+    document.getElementById('posalert').querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        document.getElementById('posalert').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false'));
+        b.setAttribute('aria-pressed', 'true');
+        body.dataset.posalert = b.dataset.a;
+        applyState(body.dataset.state); // combined strip reflects the POS state
+      });
+    });
+
+    // ---- mirror card: draggable + minimize to bubble ----
+    let SCALE = 1;
+    const device = document.getElementById('device');
+    const mirror = document.getElementById('mirror');
+    const bubble = document.getElementById('mirror-bubble');
+
+    function makeDraggable(el, handle, onClickNoDrag) {
+      let down = false, moved = 0, sx = 0, sy = 0, ox = 0, oy = 0;
+      handle.addEventListener('pointerdown', e => {
+        if (e.target.closest('.mir-min')) return; // let the minimize button do its thing
+        down = true; moved = 0; sx = e.clientX; sy = e.clientY;
+        const cont = el.offsetParent;               // .app
+        const r = el.getBoundingClientRect(), cr = cont.getBoundingClientRect();
+        ox = (r.left - cr.left) / SCALE; oy = (r.top - cr.top) / SCALE;
+        el.style.transition = 'none';
+        handle.setPointerCapture(e.pointerId);
+      });
+      handle.addEventListener('pointermove', e => {
+        if (!down) return;
+        const dx = (e.clientX - sx) / SCALE, dy = (e.clientY - sy) / SCALE;
+        moved = Math.max(moved, Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy));
+        const cont = el.offsetParent;
+        let nx = ox + dx, ny = oy + dy;
+        nx = Math.max(0, Math.min(cont.offsetWidth - el.offsetWidth, nx));
+        ny = Math.max(0, Math.min(cont.offsetHeight - el.offsetHeight, ny));
+        el.style.left = nx + 'px'; el.style.top = ny + 'px'; el.style.right = 'auto';
+      });
+      handle.addEventListener('pointerup', e => {
+        if (!down) return;
+        down = false;
+        if (moved < 5 && onClickNoDrag) onClickNoDrag();
+      });
+    }
+
+    makeDraggable(mirror, document.getElementById('mir-head'));
+    makeDraggable(bubble, bubble, () => { // click (not drag) restores
+      mirror.style.left = bubble.style.left || '16px';
+      mirror.style.top = bubble.style.top || '96px';
+      mirror.style.right = 'auto';
+      body.dataset.mirrorMin = '0';
+    });
+    document.getElementById('mir-min').addEventListener('click', e => {
+      e.stopPropagation();
+      bubble.style.left = mirror.style.left || '16px';
+      bubble.style.top = mirror.style.top || '96px';
+      bubble.style.right = 'auto';
+      body.dataset.mirrorMin = '1';
+    });
+
+    // ---- routing table ----
+    const routing = document.getElementById('routing');
+    let rhtml = '<thead><tr><th>State</th><th>What the customer is doing</th><th>Recommended treatment</th></tr></thead><tbody>';
+    const tierOrder = ['idle', 'ambient', 'pending', 'result', 'error'];
+    const byTier = {}; Object.keys(STATES).forEach(k => { (byTier[STATES[k].tier] = byTier[STATES[k].tier] || []).push(k); });
+    tierOrder.forEach(t => {
+      if (!byTier[t]) return;
+      rhtml += `<tr class="tier-row"><td colspan="3">${TIERS[t].label}</td></tr>`;
+      byTier[t].forEach(k => {
+        const s = STATES[k], c = C[s.c];
+        rhtml += `<tr><td><span class="dotc" style="background:${c.color}"></span>${shortLabel[k]}</td>`
+          + `<td>${s.sub}</td>`
+          + `<td><span class="treat ${s.rec}">${labelForTreat(s.rec)}</span></td></tr>`;
+      });
+    });
+    rhtml += '</tbody>'; routing.innerHTML = rhtml;
+
+    // ---- responsive scale ----
+    function fit() {
+      const scaler = document.querySelector('.device-scaler');
+      const avail = Math.min(document.querySelector('.page').clientWidth, window.innerWidth - 64);
+      const scale = Math.min(1, avail / 1024);
+      SCALE = scale;
+      scaler.style.transform = `scale(${scale})`;
+      scaler.style.height = (768 * scale) + 'px'; scaler.style.width = '1024px';
+    }
+    window.addEventListener('resize', fit);
+
+    applyState('phone'); fit();
+  </script>
+</body>
+
+</html>
