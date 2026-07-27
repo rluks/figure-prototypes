@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Figure Prototypes</title>
+<style>
+  :root {
+    --bg: #fbfbfa;
+    --surface: #ffffff;
+    --border: #e4e4e1;
+    --text: #1a1a19;
+    --muted: #77776f;
+    --accent: #2f6fdb;
+    --hover: #f4f4f2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16161a;
+      --surface: #1e1e23;
+      --border: #2e2e35;
+      --text: #ececef;
+      --muted: #93939d;
+      --accent: #7aa7f5;
+      --hover: #26262d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 48px 24px 96px;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  header { margin-bottom: 28px; }
+  h1 { margin: 0 0 4px; font-size: 24px; letter-spacing: -0.02em; }
+  .sub { margin: 0; color: var(--muted); font-size: 13px; }
+  #q {
+    width: 100%;
+    margin: 24px 0 32px;
+    padding: 11px 14px;
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  #q:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  #q::placeholder { color: var(--muted); }
+  section { margin-bottom: 32px; }
+  h2 {
+    margin: 0 0 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li + li { margin-top: 6px; }
+  a.item {
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+  }
+  a.item:hover { background: var(--hover); border-color: var(--accent); }
+  a.item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .name { font-weight: 500; }
+  .path {
+    display: block;
+    margin-top: 2px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    word-break: break-all;
+  }
+  .meta { flex: 1; min-width: 0; }
+  time { flex-shrink: 0; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  #empty { display: none; color: var(--muted); }
+  footer { margin-top: 40px; font-size: 12px; color: var(--muted); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Figure Prototypes</h1>
+  <p class="sub">6 prototypes across 4 folders</p>
+</header>
+
+<input id="q" type="search" placeholder="Filter by name, folder or filename…" autocomplete="off" autofocus>
+
+<section>
+  <h2>Root</h2>
+  <ul>
+    <li><a class="item" href="Build%20Segment.html"><span class="meta"><span class="name">Build segment</span><span class="path">Build Segment.html</span></span><time>2026-06-03</time></a></li>
+  </ul>
+</section>
+
+<section>
+  <h2>POS</h2>
+  <ul>
+    <li><a class="item" href="POS/cfd-pos-status/2026-07-15-cfd-informational.html"><span class="meta"><span class="name">CFD → POS — informational states</span><span class="path">POS/cfd-pos-status/2026-07-15-cfd-informational.html</span></span><time>2026-07-15</time></a></li>
+  </ul>
+</section>
+
+<section>
+  <h2>dynamic-values-2026-07-01</h2>
+  <ul>
+    <li><a class="item" href="dynamic-values-2026-07-01/index.html"><span class="meta"><span class="name">Dynamic Values — Assignment SMS Message (Prototype)</span><span class="path">dynamic-values-2026-07-01/index.html</span></span><time>2026-07-01</time></a></li>
+  </ul>
+</section>
+
+<section>
+  <h2>mPOS</h2>
+  <ul>
+    <li><a class="item" href="mPOS/tabs/peeking-paging-prototype-b.html"><span class="meta"><span class="name">Paginated Tabs — B (peek)</span><span class="path">mPOS/tabs/peeking-paging-prototype-b.html</span></span><time>2026-07-14</time></a></li>
+    <li><a class="item" href="mPOS/webapp/menu-configuration-2026-07-24-one-parent-standalone.html"><span class="meta"><span class="name">Sales Input · mPOS — Figure Manage</span><span class="path">mPOS/webapp/menu-configuration-2026-07-24-one-parent-standalone.html</span></span><time>2026-07-27</time></a></li>
+    <li><a class="item" href="mPOS/webapp/menu-configuration-2026-07-24-standalone.html"><span class="meta"><span class="name">Sales Input · mPOS — Figure Manage</span><span class="path">mPOS/webapp/menu-configuration-2026-07-24-standalone.html</span></span><time>2026-07-27</time></a></li>
+  </ul>
+</section>
+
+<p id="empty">No prototypes match that filter.</p>
+
+<footer>Generated 2026-07-27 by <code>./build-index.sh</code> — re-run it after adding a prototype.</footer>
+</div>
+
+<script>
+  const q = document.getElementById('q');
+  const empty = document.getElementById('empty');
+  q.addEventListener('input', () => {
+    const term = q.value.trim().toLowerCase();
+    let hits = 0;
+    document.querySelectorAll('section').forEach(section => {
+      let shown = 0;
+      section.querySelectorAll('li').forEach(li => {
+        const match = li.textContent.toLowerCase().includes(term);
+        li.hidden = !match;
+        if (match) shown++;
+      });
+      section.hidden = shown === 0;
+      hits += shown;
+    });
+    empty.style.display = hits ? 'none' : 'block';
+  });
+</script>
+</body>
+</html>
