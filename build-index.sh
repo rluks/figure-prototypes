@@ -22,6 +22,8 @@ urlenc() { sed -e 's/%/%25/g' -e 's/ /%20/g' -e 's/#/%23/g' -e 's/?/%3F/g'; }
   find . -name '*.html' -not -path './.git/*' | sort | while IFS= read -r f; do
     rel="${f#./}"
     [ "$rel" = "$OUT" ] && continue
+    # Storybook builds ship an iframe.html beside index.html; only index.html is a page to open.
+    [ "$(basename "$rel")" = "iframe.html" ] && continue
     printf '<p><a href="%s">%s</a></p>\n' \
       "$(printf '%s' "$rel" | urlenc | esc)" \
       "$(printf '%s' "$rel" | esc)"
