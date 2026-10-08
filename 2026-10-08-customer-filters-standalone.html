@@ -778,10 +778,10 @@ function filtersA() {
   const segSel = `<div class="sel ${S.open === 'a-seg' ? 'open' : ''}" data-act="open" data-pop="a-seg" style="width:230px">${s ? `<span class="val">${esc(s.name)}</span>` : `<span class="ph">Select segment</span>`}${s ? segClear : arrow}</div>`;
   let fSel, tags;
   if (off) {   // read-only: every one of the segment's filters shows (Win-back's three)
-    // Match shown: the segment's own words. Hidden: "or" is the field's rule, so only an "and" shows
-    // (Wine Club Regulars: VIP Regular and Wine Club), or the segment would read as any of them
+    // Match shown: the segment's own words. Hidden: no join words at all, read-only included
+    // (Roman, 10-08: Wine Club Regulars reads VIP Regular Wine Club)
     const ro = S.sm === 'ro', sj = segMatch(s) === 'any' ? 'or' : 'and', shown = S.mt === 'on';
-    const j = shown || sj === 'and' ? sj : null;
+    const j = shown ? sj : null;
     fSel = fieldOff('filters', ro ? segFilters(s).map(k => [FILTERS[k].chip]) : [], j);
     tags = fieldOff('tags', ro ? segTagGroups(s) : [], j, shown ? 'or' : null);
   } else {   // Match shown: the and / or between items in both fields follows it. Hidden: no words
